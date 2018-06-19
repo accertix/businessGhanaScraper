@@ -1,0 +1,16 @@
+{
+  "name": "businessghanascraper",
+  "version": "0.0.1",
+  "description": "Scraper for business Ghana website real estate section",
+  "main": "scraper.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alvin Ofori",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-boost": "^0.1.9",
+    "graphql": "^0.13.2",
+    "graphql-tag": "^2.9.2"
+  }
+}
