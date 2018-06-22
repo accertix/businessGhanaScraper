@@ -12,15 +12,22 @@ const client = new Lokka({
 // 	// 	Authorization: "Bearer " + token,
 // 	// },
 // })
+
+/**
+ * todo: 
+ * * break this up into readable, modularized code
+ * * create Location, User(lister) and relationships linking these to the property
+ * * set correct scalar type for details of property, so they can be accepted by GraphQL and stored in db
+ * * make sure source type works, and relationships are created with the property
+ * * 
+ */
 ;(async () => {
 	let scrape = async () => {
 		const browser = await puppeteer.launch({ headless: false })
 		const page = await browser.newPage()
 		await page.goto("http://www.businessghana.com/site/real-estates")
 		await page.waitFor(1000)
-		/**
-		 * TODO: refactor to use less code, and be more readable
-		 */
+		
 		const result = await page.evaluate(() => {
 			allPropertyLinks = document.querySelectorAll(".featured-image > a")
 			allPropertyLinks = Array.prototype.map.call(
@@ -219,21 +226,18 @@ const client = new Lokka({
                 url: "random text for now"
                 title: "${each.title}"
                 desc: "${each.desc}"
-                imageURLs: ""
                 streetAddress: "${each.streetAddress}"
-                price: "${each.price}"
-                numBedrooms: "${each.numBedrooms}"
-                numBathroooms: "${each.numBathrooms}"
-                size: "${"
-                unitOfMeasurement: ""
-                numPlots: ""
-                projectName: ""
-
-
+                size: "${each.plotLength} x ${each.plotWidth} plot"
+                unitOfMeasurement: "${each.plotMeasure}"
+                
             ) {
                 id
                 title
-                url
+				url
+				description
+				streetAddress
+				size
+				unitOfMeasurement
             }}`
 				)
 				.then(response => {
