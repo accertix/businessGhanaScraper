@@ -10,7 +10,18 @@
   "license": "ISC",
   "dependencies": {
     "apollo-boost": "^0.1.9",
+    "apollo-client": "^2.3.5",
+    "dotenv": "^6.0.0",
     "graphql": "^0.13.2",
-    "graphql-tag": "^2.9.2"
+    "graphql-client": "^2.0.1",
+    "graphql-request": "^1.6.0",
+    "graphql-tag": "^2.9.2",
+    "isomorphic-fetch": "^2.2.1",
+    "lokka": "^1.7.0",
+    "lokka-transport-http": "^1.6.1",
+    "puppeteer": "^1.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.5"
   }
 }
