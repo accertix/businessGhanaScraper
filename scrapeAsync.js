@@ -116,6 +116,7 @@ const client = new Lokka({
 			await page.waitFor(3000)
 
 			let result = await page.evaluate(() => {
+				let url = window.location.href
 				let title = document
 					.querySelector(".details-title > h2")
 					.innerHTML.trim()
@@ -194,6 +195,7 @@ const client = new Lokka({
 					.innerHTML.trim()
 
 				return {
+					url,
 					title,
 					price,
 					numRooms,
@@ -223,7 +225,7 @@ const client = new Lokka({
 			client
 				.mutate(
 					`{newProperty: CreateProperty(
-                url: "random text for now"
+                url: "${each.url}"
                 title: "${each.title}"
                 desc: "${each.desc}"
                 streetAddress: "${each.streetAddress}"
