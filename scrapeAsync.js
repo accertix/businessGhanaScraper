@@ -14,12 +14,12 @@ const client = new Lokka({
 // })
 
 /**
- * todo: 
+ * todo:
  * * break this up into readable, modularized code
  * * create Location, User(lister) and relationships linking these to the property
  * * set correct scalar type for details of property, so they can be accepted by GraphQL and stored in db
  * * make sure source type works, and relationships are created with the property
- * * 
+ * * only store properties that have not been stored already
  */
 ;(async () => {
 	let scrape = async () => {
@@ -27,7 +27,7 @@ const client = new Lokka({
 		const page = await browser.newPage()
 		await page.goto("http://www.businessghana.com/site/real-estates")
 		await page.waitFor(1000)
-		
+
 		const result = await page.evaluate(() => {
 			allPropertyLinks = document.querySelectorAll(".featured-image > a")
 			allPropertyLinks = Array.prototype.map.call(
@@ -36,6 +36,7 @@ const client = new Lokka({
 					return e.href
 				}
 			)
+
 			plotLinks = allPropertyLinks.filter(e => {
 				return e.startsWith(
 					"http://www.businessghana.com/site/real-estates/plots"
@@ -57,62 +58,93 @@ const client = new Lokka({
 				)
 			})
 
-			return {
-				propertyLinks,
-				// price
-			}
+			return propertyLinks
 		})
 		browser.close()
 		return result
 	}
 
-	let getDetails = scrape().then(async links => {
+	let getDetails = scrape().then(async unfilteredLinks => {
 		const browser = await puppeteer.launch({ headless: false })
 		let data = []
-		console.log(links.propertyLinks)
+		let freshLinks = []
+		//to prevent duplication of scraped properties
+
+		//fetch the links already stored..
+		client
+			.query(
+				`{allProperties: Properties{
+                	url
+            	}}`
+			)
+			.then(response => {
+				console.log(response.allProperties)
+
+				//filter out only the ones we don't yet have
+				const alreadyStoredPropertyLinks = response.allProperties
+				console.log(alreadyStoredPropertyLinks)
+				//convert urls from objects to strings.
+				const stringAlreadyStoredPropertyLinks = alreadyStoredPropertyLinks.map(
+					e => {
+						return e.url
+					}
+				)
+				console.log(
+					stringAlreadyStoredPropertyLinks +
+						" after removing strings from objs"
+				)
+
+				freshLinks = Array.prototype.filter.call(
+					unfilteredLinks,
+					function(e) {
+						return stringAlreadyStoredPropertyLinks.indexOf(e) < 0
+					}
+				)
+			})
+
 		/**
 		 * TODO: transfer these to a 'selectors' file, and import them for use.
 		 *
 		 */
 
-		const TITLE_SELECTOR = ".details-title > h2"
-		const PRICE_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(3) > .section-info-content"
-		const NUM_ROOMS_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(4) > .section-info-content"
-		const NUM_BEDROOMS_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(5) > .section-info-content"
-		const ACQUISITION_TYPE_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(6) > .section-info-content"
-		const NUM_BATHROOMS_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(7) > .section-info-content"
-		const PLOT_LENGTH_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(8) > .section-info-content"
-		const PLOT_WIDTH_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(9) > .section-info-content"
-		const PLOT_MEASURE_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(10) > .section-info-content"
-		const DESCRIPTION_SELECTOR =
-			".all-details-section > div > div:nth-child(4) > div > div:nth-child(11) > .section-info-content"
-		const LOCATION_SELECTOR =
-			".all-details-section > div > div:nth-child(5) > div > div:nth-child(3) > .section-info-content"
-		const REGION_SELECTOR =
-			".all-details-section > div > div:nth-child(5) > div > div:nth-child(4) > .section-info-content"
-		const STREET_ADDRESS_SELECTOR =
-			".all-details-section > div > div:nth-child(5) > div > div:nth-child(5) > .section-info-content"
-		const LISTER_NAME_SELECTOR =
-			".all-details-section > div > div:nth-child(6) > div > div:nth-child(3) > .section-info-content"
-		const LISTER_PHONE_SELECTOR =
-			".all-details-section > div > div:nth-child(6) > div > div:nth-child(4) > .section-info-content"
-		const ADVERTISER_SELECTOR =
-			".all-details-section > div > div:nth-child(6) > div > div:nth-child(5) > .section-info-content"
+		// const TITLE_SELECTOR = ".details-title > h2"
+		// const PRICE_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(3) > .section-info-content"
+		// const NUM_ROOMS_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(4) > .section-info-content"
+		// const NUM_BEDROOMS_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(5) > .section-info-content"
+		// const ACQUISITION_TYPE_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(6) > .section-info-content"
+		// const NUM_BATHROOMS_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(7) > .section-info-content"
+		// const PLOT_LENGTH_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(8) > .section-info-content"
+		// const PLOT_WIDTH_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(9) > .section-info-content"
+		// const PLOT_MEASURE_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(10) > .section-info-content"
+		// const DESCRIPTION_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(4) > div > div:nth-child(11) > .section-info-content"
+		// const LOCATION_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(5) > div > div:nth-child(3) > .section-info-content"
+		// const REGION_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(5) > div > div:nth-child(4) > .section-info-content"
+		// const STREET_ADDRESS_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(5) > div > div:nth-child(5) > .section-info-content"
+		// const LISTER_NAME_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(6) > div > div:nth-child(3) > .section-info-content"
+		// const LISTER_PHONE_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(6) > div > div:nth-child(4) > .section-info-content"
+		// const ADVERTISER_SELECTOR =
+		// 	".all-details-section > div > div:nth-child(6) > div > div:nth-child(5) > .section-info-content"
 
 		//TODO: limiting to 3, to manage memory for testing
 		//change to complete list in production.
 		//need to figure a better way to handle this.
-		for (let i = 0; i < 3; i++) {
+		for (let i = 0; i < 1; i++) {
 			let page = await browser.newPage()
-			await page.goto(links.propertyLinks[i])
+			await page.goto(freshLinks[i])
 			await page.waitFor(3000)
 
 			let result = await page.evaluate(() => {
@@ -220,7 +252,6 @@ const client = new Lokka({
 	})
 
 	getDetails.then(properties => {
-		console.log(properties)
 		properties.forEach(each => {
 			client
 				.mutate(
