@@ -19,7 +19,8 @@ const client = new Lokka({
  * * create Location, User(lister) and relationships linking these to the property
  * * set correct scalar type for details of property, so they can be accepted by GraphQL and stored in db
  * * make sure source type works, and relationships are created with the property
- * * only store properties that have not been stored already
+ * * only store properties that have not been stored already DONE
+ * * management of images. upload and store on server/CDN
  */
 ;(async () => {
 	let scrape = async () => {
