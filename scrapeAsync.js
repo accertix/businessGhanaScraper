@@ -21,6 +21,9 @@ const client = new Lokka({
  * * make sure source type works, and relationships are created with the property
  * * only store properties that have not been stored already DONE
  * * management of images. upload and store on server/CDN
+ * * handle and log all errors encountered during scraping
+ * * increase the time-out range to about 3 mins.
+ * * store the plots and other property types too.
  */
 ;(async () => {
 	let scrape = async () => {
@@ -60,6 +63,8 @@ const client = new Lokka({
 			})
 
 			return propertyLinks
+		}).catch(e => {
+			console.log(e)
 		})
 		browser.close()
 		return result
